@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+
+  # API Gateway Service
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - USER_SERVICE_URL=http://user-service:8082
+      - PRODUCT_SERVICE_URL=http://product-service:8081
+      - ORDER_SERVICE_URL=http://order-service:8083
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    networks:
+      - app-network
+
+  # User Service
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    networks:
+      - app-network
+
+  # Product Service
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db_products:5432/productdb
+      - SPRING_DATASOURCE_USERNAME=yy
+      - SPRING_DATASOURCE_PASSWORD=1234
+    ports:
+      - "8081:8081"
+    depends_on:
+      db_products:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # Order Service
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db_order:5432/orderdb
+      - SPRING_DATASOURCE_USERNAME=yy
+      - SPRING_DATASOURCE_PASSWORD=1234
+    ports:
+      - "8083:8083"
+    depends_on:
+      db_order:
+        condition: service_healthy
+    networks:
+      - app-network
+  notification-service:
+    build:
+      context: ./notification
+      dockerfile: Dockerfile
+    environment:
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+
+  # PostgreSQL for Product Service
+  db_products:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: yy
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_products_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yy -d productdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Order Service
+  db_order:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: yy
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_orders_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yy -d orderdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  rabbitmq:
+    image: rabbitmq:3.8-management
+    ports:
+      - "5672:5672" # AMQP port
+      - "15672:15672" # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  postgres_products_data:
+  postgres_orders_data:

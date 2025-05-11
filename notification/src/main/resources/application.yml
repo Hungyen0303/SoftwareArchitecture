@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: notification-service
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: nguyenhungyen0000@gmail.com
+    password: uuigsnlywmkeahop
+
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+rabbitmq:
+  queue: notification.queue
