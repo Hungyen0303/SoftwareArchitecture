@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
 @Entity
 @Table(name = "order_items")
+@NoArgsConstructor
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,10 +41,6 @@ public class OrderItem {
     @NotNull
     @Column(name = "subtotal", nullable = false)
     private BigDecimal subtotal;
-
-    public OrderItem() {
-        this.subtotal = calculateSubtotal();
-    }
 
     public OrderItem(Long productId, String productName, Integer quantity, BigDecimal unitPrice) {
         this.productId = productId;

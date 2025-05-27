@@ -64,7 +64,6 @@ public class Order {
         PENDING, PAID, FAILED, REFUNDED
     }
 
-    // Domain logic
     public void addItem(OrderItem item) {
         if (item == null) {
             throw new IllegalArgumentException("Order item cannot be null");

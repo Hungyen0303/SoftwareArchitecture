@@ -1,8 +1,1 @@
-com\ecommerce\orderservice\model\Order.class
-com\ecommerce\orderservice\service\impl\OrderServiceImpl.class
-com\ecommerce\orderservice\model\OrderItem.class
-com\ecommerce\orderservice\model\Order$PaymentStatus.class
 com\ecommerce\orderservice\OrderServiceApplication.class
-com\ecommerce\orderservice\service\OrderService.class
-com\ecommerce\orderservice\model\Order$OrderStatus.class
-com\ecommerce\orderservice\repository\OrderRepository.class

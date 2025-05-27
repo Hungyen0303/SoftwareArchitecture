@@ -1,6 +1,7 @@
 package com.ecommerce.orderservice.api;
 
 import com.ecommerce.orderservice.application.OrderApplicationService;
+import com.ecommerce.orderservice.domain.dto.OrderDTO;
 import com.ecommerce.orderservice.domain.model.Order;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,27 +19,27 @@ public class OrderController {
     private final OrderApplicationService orderApplicationService;
 
     @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
-        List<Order> orders = orderApplicationService.getAllOrders();
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
+        List<OrderDTO> orders = orderApplicationService.getAllOrders();
         return ResponseEntity.ok(orders);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
         return orderApplicationService.getOrderById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/user/{userEmail}")
-    public ResponseEntity<List<Order>> getOrdersByUserEmail(@PathVariable String userEmail) {
-        List<Order> orders = orderApplicationService.getOrdersByUserEmail(userEmail);
+    public ResponseEntity<List<OrderDTO>> getOrdersByUserEmail(@PathVariable String userEmail) {
+        List<OrderDTO> orders = orderApplicationService.getOrdersByUserEmail(userEmail);
         return ResponseEntity.ok(orders);
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Order>> getOrdersByStatus(@PathVariable Order.OrderStatus status) {
-        List<Order> orders = orderApplicationService.getOrdersByStatus(status);
+    public ResponseEntity<List<OrderDTO>> getOrdersByStatus(@PathVariable Order.OrderStatus status) {
+        List<OrderDTO> orders = orderApplicationService.getOrdersByStatus(status);
         return ResponseEntity.ok(orders);
     }
 
