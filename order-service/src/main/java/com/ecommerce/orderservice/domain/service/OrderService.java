@@ -1,7 +1,8 @@
 package com.ecommerce.orderservice.domain.service;
 
 import com.ecommerce.orderservice.domain.model.Order;
-import com.ecommerce.orderservice.domain.repositories.OrderRepository;
+import com.ecommerce.orderservice.domain.model.OrderState;
+import com.ecommerce.orderservice.domain.repositories.OrderStateRepo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,21 +14,21 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-    private final OrderRepository orderRepository;
+    private final OrderStateRepo orderRepository;
 
-    public List<Order> getAllOrders() {
+    public List<OrderState> getAllOrders() {
         return orderRepository.findAll();
     }
 
-    public Optional<Order> getOrderById(Long id) {
+    public Optional<OrderState> getOrderById(Long id) {
         return orderRepository.findById(id);
     }
 
-    public List<Order> getOrdersByUserEmail(String userEmail) {
+    public List<OrderState> getOrdersByUserEmail(String userEmail) {
         return orderRepository.findByUserEmail(userEmail);
     }
 
-    public List<Order> getOrdersByStatus(Order.OrderStatus status) {
+    public List<OrderState> getOrdersByStatus(Order.OrderStatus status) {
         return orderRepository.findByStatus(status);
     }
 

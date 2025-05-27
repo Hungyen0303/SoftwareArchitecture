@@ -4,6 +4,7 @@ import com.ecommerce.orderservice.domain.event.OrderCancelledEvent;
 import com.ecommerce.orderservice.domain.event.OrderCreatedEvent;
 import com.ecommerce.orderservice.domain.event.OrderPaymentStatusUpdatedEvent;
 import com.ecommerce.orderservice.domain.event.OrderStatusUpdatedEvent;
+import jakarta.persistence.Entity;
 import lombok.Data;
 import lombok.Getter;
 

@@ -1,9 +1,14 @@
 package com.ecommerce.orderservice.infrastructure.eventstore;
 
-import com.eventstore.dbclient.*;
+
+import com.eventstore.dbclient.EventData;
+import com.eventstore.dbclient.EventStoreDBClient;
+import com.eventstore.dbclient.ReadResult;
+import com.eventstore.dbclient.ReadStreamOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -29,7 +34,7 @@ public class EventStoreRepository {
                     }
                 })
                 .collect(Collectors.toList());
-        client.appendToStream(streamId, eventDataList).get();
+        client.appendToStream(streamId, (Iterator<EventData>) eventDataList).get();
     }
 
     public List<Object> loadEvents(String streamId) throws ExecutionException, InterruptedException {
