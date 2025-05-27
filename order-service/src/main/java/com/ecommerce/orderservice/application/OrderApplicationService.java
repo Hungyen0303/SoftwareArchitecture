@@ -48,7 +48,22 @@ public class OrderApplicationService {
         OrderCreatedEvent event = new OrderCreatedEvent(
                 String.valueOf(createdOrder.getId()),
                 createdOrder.getUserEmail(),
-                createdOrder.getTotalAmount()
+                createdOrder.getItems().stream()
+                        .map(item -> new OrderCreatedEvent.OrderItemData(
+                                item.getProductId(),
+                                item.getProductName(),
+                                item.getQuantity(),
+                                item.getUnitPrice(),
+                                item.getSubtotal()
+                        ))
+                        .collect(Collectors.toList()),
+                createdOrder.getTotalAmount(),
+                createdOrder.getStatus(),
+                createdOrder.getShippingAddress(),
+                createdOrder.getPaymentMethod(),
+                createdOrder.getPaymentStatus(),
+                createdOrder.getCreatedAt()
+
         );
         eventPublisher.publishOrderCreatedEvent(event);
         return createdOrder;

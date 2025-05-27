@@ -1,59 +1,30 @@
 package com.ecommerce.orderservice.domain.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import com.ecommerce.orderservice.domain.event.OrderCancelledEvent;
+import com.ecommerce.orderservice.domain.event.OrderCreatedEvent;
+import com.ecommerce.orderservice.domain.event.OrderPaymentStatusUpdatedEvent;
+import com.ecommerce.orderservice.domain.event.OrderStatusUpdatedEvent;
 import lombok.Data;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
-@Entity
-@Table(name = "orders")
-@EntityListeners(AuditingEntityListener.class)
+@Getter
 public class Order {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @NotNull
-    @NotEmpty
-    @Column(name = "user_email", nullable = false)
     private String userEmail;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
-
-    @NotNull
-    @Column(name = "total_amount", nullable = false)
     private BigDecimal totalAmount;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
     private OrderStatus status = OrderStatus.PENDING;
-
-    @Column(name = "shipping_address")
     private String shippingAddress;
-
-    @Column(name = "payment_method")
     private String paymentMethod;
-
-    @Column(name = "payment_status")
-    @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
-
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     public enum OrderStatus {
@@ -64,24 +35,49 @@ public class Order {
         PENDING, PAID, FAILED, REFUNDED
     }
 
-    public void addItem(OrderItem item) {
-        if (item == null) {
-            throw new IllegalArgumentException("Order item cannot be null");
-        }
-        item.setOrder(this);
-        this.items.add(item);
-        recalculateTotalAmount();
+    // Áp dụng sự kiện để tái tạo trạng thái
+    public void apply(OrderCreatedEvent event) {
+        this.id = Long.valueOf(event.getOrderId());
+        this.userEmail = event.getUserEmail();
+        this.items = event.getItems().stream()
+                .map(item -> new OrderItem(item.getProductId(), item.getProductName(), item.getQuantity(), item.getUnitPrice()))
+                .collect(Collectors.toList());
+        this.totalAmount = event.getTotalAmount();
+        this.status = event.getStatus();
+        this.shippingAddress = event.getShippingAddress();
+        this.paymentMethod = event.getPaymentMethod();
+        this.paymentStatus = event.getPaymentStatus();
+        this.createdAt = event.getCreatedAt();
+        this.updatedAt = event.getCreatedAt();
     }
 
+    public void apply(OrderStatusUpdatedEvent event) {
+        this.status = event.getStatus();
+        this.updatedAt = event.getUpdatedAt();
+    }
+
+    public void apply(OrderPaymentStatusUpdatedEvent event) {
+        this.paymentStatus = event.getPaymentStatus();
+        this.updatedAt = event.getUpdatedAt();
+    }
+
+    public void apply(OrderCancelledEvent event) {
+        this.status = OrderStatus.CANCELLED;
+        this.updatedAt = event.getCancelledAt();
+    }
+
+    // Domain logic
     public void updateStatus(OrderStatus newStatus) {
         if (!isValidStatusTransition(this.status, newStatus)) {
             throw new IllegalStateException("Invalid status transition from " + this.status + " to " + newStatus);
         }
         this.status = newStatus;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void updatePaymentStatus(PaymentStatus newStatus) {
         this.paymentStatus = newStatus;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void cancel() {
@@ -89,12 +85,7 @@ public class Order {
             throw new IllegalStateException("Cannot cancel a delivered or already cancelled order");
         }
         this.status = OrderStatus.CANCELLED;
-    }
-
-    private void recalculateTotalAmount() {
-        this.totalAmount = items.stream()
-                .map(OrderItem::getSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        this.updatedAt = LocalDateTime.now();
     }
 
     private boolean isValidStatusTransition(OrderStatus current, OrderStatus next) {
